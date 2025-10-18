@@ -5,7 +5,7 @@
 **Wichtig:**
 **_Ril100 ist eine private Webanwendung! Die bereitgestellten APN-Pläne sind keine signaltechischen Lagepläne und dürfen nicht zu betriebliche Zwecke benutzt werden._**
 
-Die Ril100 ist eine Richtlinie der Deutschen Bahn. Sie beinhaltet ein Verzeichnis der Abkürzungen der Betriebsstellen der DB InfraGO AG (siehe [https://www.dbinfrago.com/web/schienennetz/betrieb/allgemeine-betriebsinformationen/betriebsstellen-12592996](Abkürzungen der Betriebsstellen)). Dies können Bahnhöfe, Haltepunkte o.ä. sein.
+Die Ril100 ist eine Richtlinie der Deutschen Bahn. Sie beinhaltet ein Verzeichnis der Abkürzungen der Betriebsstellen der DB InfraGO AG. Siehe dazu die [Abkürzungen der Betriebsstellen](https://www.dbinfrago.com/web/schienennetz/betrieb/allgemeine-betriebsinformationen/betriebsstellen-12592996).
 
 ## Was bietet die App?
 
