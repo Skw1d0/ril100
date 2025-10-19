@@ -5,6 +5,7 @@ import {
   CardContent,
   CardHeader,
   IconButton,
+  Link,
   Stack,
   styled,
   Table,
@@ -15,7 +16,6 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-
 import { Bolt, Map, PictureInPicture, Train } from "@mui/icons-material";
 import { findStreckensegmente, type Betriebsstelle } from "../tools/data";
 import {
@@ -26,6 +26,7 @@ import {
 
 interface ResultListProps {
   results: Betriebsstelle[];
+  setSearchTerm: (value: string) => void;
 }
 
 const StyledIconButton = styled(IconButton)(({ theme }) => ({
@@ -36,7 +37,7 @@ const StyledIconButton = styled(IconButton)(({ theme }) => ({
   },
 }));
 
-function ResultList({ results }: ResultListProps) {
+function ResultList({ results, setSearchTerm }: ResultListProps) {
   return (
     <Box sx={{ display: "flex", justifyContent: "center" }}>
       <Stack
@@ -73,22 +74,33 @@ function ResultList({ results }: ResultListProps) {
               <TableContainer>
                 <Table sx={{ minWidth: 700 }}>
                   <TableHead>
-                    <TableCell sx={{ width: 100 }}>VzG</TableCell>
-                    <TableCell sx={{ width: 300 }}>Von</TableCell>
-                    <TableCell sx={{ width: 300 }}></TableCell>
-                    <TableCell sx={{ width: 300 }}>Nach</TableCell>
+                    <TableRow>
+                      <TableCell sx={{ width: 100 }}>VzG</TableCell>
+                      <TableCell sx={{ width: 300 }}>Von</TableCell>
+                      <TableCell sx={{ width: 300 }}></TableCell>
+                      <TableCell sx={{ width: 300 }}>Nach</TableCell>
+                    </TableRow>
                   </TableHead>
                   <TableBody>
                     {findStreckensegmente(result.ds100).map((line) => (
-                      <TableRow>
+                      <TableRow key={Math.random()}>
                         <TableCell>{line.streckennummer}</TableCell>
                         <TableCell>
                           <Stack direction={"column"} spacing={0}>
                             {line.von.segment && (
                               <>
-                                <Typography>
-                                  {line.von.betriebsstelle?.langname}
-                                </Typography>
+                                <Link
+                                  style={{ cursor: "pointer" }}
+                                  onClick={() =>
+                                    setSearchTerm(
+                                      line.von.betriebsstelle?.ds100 || ""
+                                    )
+                                  }
+                                >
+                                  <Typography>
+                                    {line.von.betriebsstelle?.langname}
+                                  </Typography>
+                                </Link>
                                 <Typography fontWeight={100}>
                                   {line.von.segment.von_km.toFixed(3)}
                                 </Typography>
@@ -110,9 +122,18 @@ function ResultList({ results }: ResultListProps) {
                         <TableCell>
                           {line.bis.segment && (
                             <>
-                              <Typography>
-                                {line.bis.betriebsstelle?.langname}
-                              </Typography>
+                              <Link
+                                style={{ cursor: "pointer" }}
+                                onClick={() =>
+                                  setSearchTerm(
+                                    line.bis.betriebsstelle?.ds100 || ""
+                                  )
+                                }
+                              >
+                                <Typography>
+                                  {line.bis.betriebsstelle?.langname}
+                                </Typography>
+                              </Link>
                               <Typography fontWeight={100}>
                                 {line.bis.segment.bis_km.toFixed(3)}
                               </Typography>

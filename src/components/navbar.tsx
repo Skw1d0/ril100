@@ -13,9 +13,10 @@ import { DarkMode, LightMode } from "@mui/icons-material";
 import { THEME } from "../styles/theme";
 
 interface NavbarParams {
-  searchFunction: (value: string) => void;
-  changeTheme: (value: THEME) => void;
+  searchTerm: string;
   currentTheme: THEME;
+  setSearchTerm: (value: string) => void;
+  changeTheme: (value: THEME) => void;
 }
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
@@ -24,7 +25,12 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
   justifyContent: "center",
 }));
 
-function Navbar({ searchFunction, changeTheme, currentTheme }: NavbarParams) {
+function Navbar({
+  searchTerm,
+  currentTheme,
+  setSearchTerm,
+  changeTheme,
+}: NavbarParams) {
   return (
     <Box sx={{ flexGrow: 1 }}>
       <StyledAppBar>
@@ -45,7 +51,8 @@ function Navbar({ searchFunction, changeTheme, currentTheme }: NavbarParams) {
             placeholder="Betriebsstelle"
             fullWidth
             variant="standard"
-            onChange={(e) => searchFunction(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchTerm}
           />
           <Box flexGrow={1} />
           <IconButton
