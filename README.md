@@ -9,7 +9,12 @@ Die Ril100 ist eine Richtlinie der Deutschen Bahn. Sie beinhaltet ein Verzeichni
 
 ## Was bietet die App?
 
-Der Funktionisumfang dieser Anwendung ist die Suche einer Betriebsstelle innerhalb der Richtlinie 100 mittels Ril100-Code, -Kurzname oder -Langname. Mit den Treffern können APN-Pläne heruntergeladen werden, falls sie bereitgestellt werden. Außerdem kann ein Link zu Openrailwaymaps geöffnet werden. Dies kann zum Beispiel genutzt werden, um sich einen schnellen Überblick über eine Betriebsstelle zu verschaffen.
+In der Anwendung bietet:
+
+- Suche von Betriebsstellen gemäß DS100 oder Kurkbezeichnung
+- Angrenzende Betriebsstellen werden mit Killomenterangabe und Streckennumer angezeigt
+- Downloadfunktion von APN-Plänen (falls vorhanden)
+- Weiterleitung zu Openrailwaymaps oder Google Maps
 
 ## Wie erreiche ich die App
 

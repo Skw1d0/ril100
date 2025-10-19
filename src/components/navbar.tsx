@@ -1,16 +1,15 @@
 import {
-  alpha,
   AppBar,
   Box,
   IconButton,
-  InputBase,
+  InputAdornment,
   styled,
+  TextField,
   Toolbar,
-  useTheme,
 } from "@mui/material";
 import Logo from "../assets/logo.svg";
-import { DarkMode, LightMode } from "@mui/icons-material";
 import SearchIcon from "@mui/icons-material/Search";
+import { DarkMode, LightMode } from "@mui/icons-material";
 import { THEME } from "../styles/theme";
 
 interface NavbarParams {
@@ -19,71 +18,35 @@ interface NavbarParams {
   currentTheme: THEME;
 }
 
-const Search = styled("div")(({ theme }) => ({
-  position: "relative",
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.primary.light, 0.15),
-  "&:hover": {
-    backgroundColor: alpha(theme.palette.primary.light, 0.25),
-  },
-  marginRight: theme.spacing(2),
-  marginLeft: theme.spacing(3),
-  width: "100%",
-  // [theme.breakpoints.down("sm")]: {
-  //   marginLeft: theme.spacing(3),
-  // },
-  // [theme.breakpoints.up("sm")]: {
-  //   marginLeft: theme.spacing(3),
-  //   width: "auto",
-  // },
-}));
-
-const SearchIconWrapper = styled("div")(({ theme }) => ({
-  padding: theme.spacing(0, 2),
-  height: "100%",
-  position: "absolute",
-  pointerEvents: "none",
-  display: "flex",
-  alignItems: "center",
+const StyledAppBar = styled(AppBar)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  color: "inherit",
   justifyContent: "center",
 }));
 
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: "inherit",
-  "& .MuiInputBase-input": {
-    padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create("width"),
-    width: "100%",
-    [theme.breakpoints.up("md")]: {
-      width: "20ch",
-    },
-  },
-}));
-
 function Navbar({ searchFunction, changeTheme, currentTheme }: NavbarParams) {
-  const theme = useTheme();
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar
-        sx={{
-          backgroundColor: theme.palette.background.paper,
-          color: "inherit",
-        }}
-      >
-        <Toolbar>
+      <StyledAppBar>
+        <Toolbar sx={{ width: { xs: "100%", sm: 600, md: 900 }, mx: "auto" }}>
           <img src={Logo} width={48} />
-          <Search>
-            <SearchIconWrapper>
-              <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase
-              placeholder="Betriebsstelle..."
-              inputProps={{ "aria-label": "search" }}
-              onChange={(e) => searchFunction(e.target.value)}
-            />
-          </Search>
+
+          <TextField
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{ mx: 2 }}
+            placeholder="Betriebsstelle"
+            fullWidth
+            variant="standard"
+            onChange={(e) => searchFunction(e.target.value)}
+          />
           <Box flexGrow={1} />
           <IconButton
             sx={{ color: "inherit" }}
@@ -96,7 +59,7 @@ function Navbar({ searchFunction, changeTheme, currentTheme }: NavbarParams) {
             {currentTheme == THEME.Dark ? <LightMode /> : <DarkMode />}
           </IconButton>
         </Toolbar>
-      </AppBar>
+      </StyledAppBar>
     </Box>
   );
 }

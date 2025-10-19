@@ -1,122 +1,164 @@
 import {
   Box,
-  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
   IconButton,
-  Paper,
   Stack,
+  styled,
   Table,
   TableBody,
   TableCell,
   TableContainer,
+  TableHead,
   TableRow,
   Typography,
 } from "@mui/material";
-import type { Betriebsstelle } from "../tools/betriebsstellen";
-import { DirectionsRailway, Map } from "@mui/icons-material";
-import openAPN from "../tools/apn";
-import { openOpenrailwaymaps } from "../tools/openrailway";
+
+import { Bolt, Map, PictureInPicture, Train } from "@mui/icons-material";
+import { findStreckensegmente, type Betriebsstelle } from "../tools/data";
+import {
+  openAPN,
+  openGoogleMaps,
+  openOpenrailwaymaps,
+} from "../tools/openWebsite";
 
 interface ResultListProps {
   results: Betriebsstelle[];
 }
 
+const StyledIconButton = styled(IconButton)(({ theme }) => ({
+  color: theme.palette.primary.contrastText,
+  backgroundColor: theme.palette.primary.main,
+  "&:hover": {
+    backgroundColor: theme.darken(theme.palette.primary.main, 0.25),
+  },
+}));
+
 function ResultList({ results }: ResultListProps) {
   return (
-    <Box sx={{ px: 1 }}>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableBody sx={{ display: { xs: "table-row-group", sm: "none" } }}>
-            {results.map((result) => (
-              <TableRow key={result.RL100Code}>
-                <TableCell>{result.TypKurz}</TableCell>
-                <TableCell>
-                  <Stack direction={"column"} spacing={0}>
-                    <Typography>{result.RL100Code}</Typography>
-                    <Typography>{result.RL100Kurz}</Typography>
-                    <Typography>{result.RL100Lang}</Typography>
-                  </Stack>
-                </TableCell>
-                <TableCell sx={{ justifyItems: "end" }}>
-                  <Stack direction={"row"} spacing={0}>
-                    <IconButton
-                      sx={{ color: "inherit" }}
-                      onClick={() => openAPN(result.RL100Code)}
-                    >
-                      <DirectionsRailway />
-                    </IconButton>
-                    <IconButton
-                      sx={{ color: "inherit" }}
-                      onClick={() => openOpenrailwaymaps(result.RL100Lang)}
-                    >
-                      <Map />
-                    </IconButton>
-                  </Stack>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-
-          <TableBody
-            sx={{ display: { xs: "none", sm: "table-row-group", md: "none" } }}
-          >
-            {results.map((result) => (
-              <TableRow key={result.RL100Code}>
-                <TableCell>{result.TypKurz}</TableCell>
-                <TableCell>{result.RL100Code}</TableCell>
-                <TableCell>
-                  <Stack direction={"column"} spacing={0}>
-                    <Typography>{result.RL100Kurz}</Typography>
-                    <Typography>{result.RL100Lang}</Typography>
-                  </Stack>
-                </TableCell>
-                <TableCell sx={{ justifyItems: "end" }}>
-                  <Stack direction={"row"} spacing={0}>
-                    <IconButton
-                      sx={{ color: "inherit" }}
-                      onClick={() => openAPN(result.RL100Code)}
-                    >
-                      <DirectionsRailway />
-                    </IconButton>
-                    <IconButton
-                      sx={{ color: "inherit" }}
-                      onClick={() => openOpenrailwaymaps(result.RL100Lang)}
-                    >
-                      <Map />
-                    </IconButton>
-                  </Stack>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-
-          <TableBody sx={{ display: { xs: "none", md: "table-row-group" } }}>
-            {results.map((result) => (
-              <TableRow key={result.RL100Code}>
-                <TableCell>{result.TypKurz}</TableCell>
-                <TableCell>{result.RL100Code}</TableCell>
-                <TableCell>{result.RL100Kurz}</TableCell>
-                <TableCell>{result.RL100Lang}</TableCell>
-                <TableCell sx={{ justifyItems: "end" }}>
-                  <Stack direction={"row"} spacing={2}>
-                    <Button
-                      variant="contained"
-                      onClick={() => openAPN(result.RL100Code)}
-                    >
-                      APN
-                    </Button>
-                    <Button
-                      variant="contained"
-                      onClick={() => openOpenrailwaymaps(result.RL100Lang)}
-                    >
-                      Openrailwaymap
-                    </Button>
-                  </Stack>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+    <Box sx={{ display: "flex", justifyContent: "center" }}>
+      <Stack
+        direction={"column"}
+        spacing={1}
+        sx={{
+          px: 1,
+          marginTop: 10,
+          marginBottom: 3,
+          width: { xs: "100%", sm: 600, md: 900 },
+        }}
+      >
+        {results.map((result) => (
+          <Card key={result.ds100}>
+            <CardHeader
+              title={
+                <>
+                  {result.betriebsstellentypen.map((bst) => {
+                    if (bst === "bahnhof") return "Bf ";
+                    if (bst === "bahnhofsteil") return "Bft ";
+                    if (bst === "haltepunkt") return "Hp ";
+                    if (bst === "abzweigstelle") return "Azwst ";
+                    if (bst === "ueberleitstelle") return "Üst ";
+                  })}
+                  {result.langname}
+                  {result.elektrifiziert && (
+                    <Bolt sx={{ marginLeft: 1 }} color="warning" />
+                  )}
+                </>
+              }
+              subheader={result.ds100}
+            />
+            <CardContent>
+              <TableContainer>
+                <Table sx={{ minWidth: 700 }}>
+                  <TableHead>
+                    <TableCell sx={{ width: 100 }}>VzG</TableCell>
+                    <TableCell sx={{ width: 300 }}>Von</TableCell>
+                    <TableCell sx={{ width: 300 }}></TableCell>
+                    <TableCell sx={{ width: 300 }}>Nach</TableCell>
+                  </TableHead>
+                  <TableBody>
+                    {findStreckensegmente(result.ds100).map((line) => (
+                      <TableRow>
+                        <TableCell>{line.streckennummer}</TableCell>
+                        <TableCell>
+                          <Stack direction={"column"} spacing={0}>
+                            {line.von.segment && (
+                              <>
+                                <Typography>
+                                  {line.von.betriebsstelle?.langname}
+                                </Typography>
+                                <Typography fontWeight={100}>
+                                  {line.von.segment.von_km.toFixed(3)}
+                                </Typography>
+                              </>
+                            )}
+                          </Stack>
+                        </TableCell>
+                        <TableCell>
+                          <Stack direction={"column"} spacing={0}>
+                            <Typography>
+                              {line.betriebsstelle?.langname}
+                            </Typography>
+                            <Typography fontWeight={100}>
+                              {line.von.segment?.bis_km.toFixed(3) ||
+                                line.bis.segment?.von_km.toFixed(3)}
+                            </Typography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell>
+                          {line.bis.segment && (
+                            <>
+                              <Typography>
+                                {line.bis.betriebsstelle?.langname}
+                              </Typography>
+                              <Typography fontWeight={100}>
+                                {line.bis.segment.bis_km.toFixed(3)}
+                              </Typography>
+                            </>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+            <CardActions>
+              <Box flexGrow={1} />
+              <StyledIconButton
+                disabled={!result.bahnhof}
+                onClick={() => openAPN(result.ds100)}
+              >
+                <PictureInPicture />
+              </StyledIconButton>
+              <StyledIconButton
+                disabled={!result.geo_koordinaten ? true : false}
+                onClick={() =>
+                  openOpenrailwaymaps(
+                    result.geo_koordinaten.breite,
+                    result.geo_koordinaten.laenge
+                  )
+                }
+              >
+                <Train />
+              </StyledIconButton>
+              <StyledIconButton
+                disabled={!result.geo_koordinaten ? true : false}
+                onClick={() =>
+                  openGoogleMaps(
+                    result.geo_koordinaten.breite,
+                    result.geo_koordinaten.laenge
+                  )
+                }
+              >
+                <Map />
+              </StyledIconButton>
+            </CardActions>
+          </Card>
+        ))}
+      </Stack>
     </Box>
   );
 }
