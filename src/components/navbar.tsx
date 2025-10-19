@@ -6,10 +6,11 @@ import {
   styled,
   TextField,
   Toolbar,
+  useTheme,
 } from "@mui/material";
 import Logo from "../assets/logo.svg";
 import SearchIcon from "@mui/icons-material/Search";
-import { DarkMode, LightMode } from "@mui/icons-material";
+import { Cancel, DarkMode, LightMode } from "@mui/icons-material";
 import { THEME } from "../styles/theme";
 
 interface NavbarParams {
@@ -31,6 +32,8 @@ function Navbar({
   setSearchTerm,
   changeTheme,
 }: NavbarParams) {
+  const theme = useTheme();
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <StyledAppBar>
@@ -42,7 +45,19 @@ function Navbar({
               input: {
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon />
+                    <SearchIcon sx={{ color: theme.palette.primary.main }} />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    {searchTerm && (
+                      <IconButton
+                        sx={{ color: theme.palette.primary.main }}
+                        onClick={() => setSearchTerm("")}
+                      >
+                        <Cancel />
+                      </IconButton>
+                    )}
                   </InputAdornment>
                 ),
               },
@@ -56,7 +71,7 @@ function Navbar({
           />
           <Box flexGrow={1} />
           <IconButton
-            sx={{ color: "inherit" }}
+            sx={{ color: theme.palette.primary.main }}
             onClick={() =>
               changeTheme(
                 currentTheme == THEME.Light ? THEME.Dark : THEME.Light

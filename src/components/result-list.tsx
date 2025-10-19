@@ -93,7 +93,7 @@ function ResultList({ results, setSearchTerm }: ResultListProps) {
                                   style={{ cursor: "pointer" }}
                                   onClick={() =>
                                     setSearchTerm(
-                                      line.von.betriebsstelle?.ds100 || ""
+                                      line.von.betriebsstelle?.langname || ""
                                     )
                                   }
                                 >
@@ -126,7 +126,7 @@ function ResultList({ results, setSearchTerm }: ResultListProps) {
                                 style={{ cursor: "pointer" }}
                                 onClick={() =>
                                   setSearchTerm(
-                                    line.bis.betriebsstelle?.ds100 || ""
+                                    line.bis.betriebsstelle?.langname || ""
                                   )
                                 }
                               >
