@@ -8,7 +8,7 @@ import {
   Toolbar,
   useTheme,
 } from "@mui/material";
-import Logo from "../assets/logo.svg";
+// import Logo from "../assets/logo.svg";
 import SearchIcon from "@mui/icons-material/Search";
 import { Cancel, DarkMode, LightMode } from "@mui/icons-material";
 import { THEME } from "../styles/theme";
@@ -38,8 +38,7 @@ function Navbar({
     <Box sx={{ flexGrow: 1 }}>
       <StyledAppBar>
         <Toolbar sx={{ width: { xs: "100%", sm: 600, md: 900 }, mx: "auto" }}>
-          <img src={Logo} width={48} />
-
+          {/* <img src={Logo} width={48} /> */}
           <TextField
             slotProps={{
               input: {

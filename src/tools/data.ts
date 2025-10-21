@@ -51,7 +51,7 @@ const dataTyped = data as Data;
 
 export function findBetriebstellen(query: string): Betriebsstelle[] {
   const q = query.trim().toLowerCase();
-  if (!q) return [];
+  // if (!q) return [];
 
   const seen = new Set<string>();
   const results: Betriebsstelle[] = [];

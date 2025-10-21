@@ -44,10 +44,10 @@ function ResultList({ results, setSearchTerm }: ResultListProps) {
         direction={"column"}
         spacing={1}
         sx={{
-          px: 1,
+          // px: 1,
           marginTop: 10,
           marginBottom: 3,
-          width: { xs: "100%", sm: 600, md: 900 },
+          width: { xs: "calc(100% - 10px)", sm: 600, md: 900 },
         }}
       >
         {results.map((result) => (

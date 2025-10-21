@@ -1,6 +1,5 @@
 import "./App.css";
 
-import Navbar from "./components/navbar";
 import ResultList from "./components/result-list";
 import { useEffect, useState } from "react";
 import { Box } from "@mui/material";
@@ -10,6 +9,8 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider } from "@mui/material/styles";
 import { darkTheme, lightTheme, THEME } from "./styles/theme";
 import { findBetriebstellen, type Betriebsstelle } from "./tools/data";
+// import Search from "./components/Search";
+import Navbar from "./components/navbar";
 
 export default function App() {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
@@ -34,6 +35,12 @@ export default function App() {
         setSearchTerm={setSearchTerm}
         changeTheme={setTheme}
       />
+      {/* <Search
+        searchTerm={searchTerm}
+        currentTheme={theme}
+        setSearchTerm={setSearchTerm}
+        changeTheme={setTheme}
+      /> */}
       <Box component="main" sx={{ flex: 1 }}>
         <ResultList results={results} setSearchTerm={setSearchTerm} />
       </Box>
