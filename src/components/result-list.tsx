@@ -17,7 +17,11 @@ import {
   Typography,
 } from "@mui/material";
 import { Bolt, Map, PictureInPicture, Train } from "@mui/icons-material";
-import { findStreckensegmente, type Betriebsstelle } from "../tools/data";
+import {
+  findStreckensegmente,
+  type Betriebsstelle,
+  type Strecke,
+} from "../tools/data";
 import {
   openAPN,
   openGoogleMaps,
@@ -25,8 +29,9 @@ import {
 } from "../tools/openWebsite";
 
 interface ResultListProps {
-  results: Betriebsstelle[];
-  setSearchTerm: (value: string) => void;
+  isStrecke: boolean;
+  results: Betriebsstelle[] | Strecke[];
+  setSearchString: (value: string) => void;
 }
 
 const StyledIconButton = styled(IconButton)(({ theme }) => ({
@@ -37,8 +42,8 @@ const StyledIconButton = styled(IconButton)(({ theme }) => ({
   },
 }));
 
-function ResultList({ results, setSearchTerm }: ResultListProps) {
-  return (
+function ResultList({ isStrecke, results, setSearchString }: ResultListProps) {
+  return !isStrecke ? (
     <Box sx={{ display: "flex", justifyContent: "center" }}>
       <Stack
         direction={"column"}
@@ -50,7 +55,7 @@ function ResultList({ results, setSearchTerm }: ResultListProps) {
           width: { xs: "calc(100% - 10px)", sm: 600, md: 900 },
         }}
       >
-        {results.map((result) => (
+        {(results as Betriebsstelle[]).map((result) => (
           <Card key={result.ds100}>
             <CardHeader
               title={
@@ -84,7 +89,16 @@ function ResultList({ results, setSearchTerm }: ResultListProps) {
                   <TableBody>
                     {findStreckensegmente(result.ds100).map((line) => (
                       <TableRow key={Math.random()}>
-                        <TableCell>{line.streckennummer}</TableCell>
+                        <TableCell sx={{ alignContent: "start" }}>
+                          <Link
+                            style={{ cursor: "pointer" }}
+                            onClick={() =>
+                              setSearchString(String(line.streckennummer))
+                            }
+                          >
+                            {line.streckennummer}
+                          </Link>
+                        </TableCell>
                         <TableCell>
                           <Stack direction={"column"} spacing={0}>
                             {line.von.segment && (
@@ -92,7 +106,7 @@ function ResultList({ results, setSearchTerm }: ResultListProps) {
                                 <Link
                                   style={{ cursor: "pointer" }}
                                   onClick={() =>
-                                    setSearchTerm(
+                                    setSearchString(
                                       line.von.betriebsstelle?.langname || ""
                                     )
                                   }
@@ -125,7 +139,7 @@ function ResultList({ results, setSearchTerm }: ResultListProps) {
                               <Link
                                 style={{ cursor: "pointer" }}
                                 onClick={() =>
-                                  setSearchTerm(
+                                  setSearchString(
                                     line.bis.betriebsstelle?.langname || ""
                                   )
                                 }
@@ -181,6 +195,91 @@ function ResultList({ results, setSearchTerm }: ResultListProps) {
         ))}
       </Stack>
     </Box>
+  ) : (
+    (results as Strecke[]).length > 0 && (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <Card
+          // direction={"column"}
+          // spacing={1}
+          sx={{
+            // px: 1,
+            marginTop: 10,
+            marginBottom: 3,
+            width: { xs: "calc(100% - 10px)", sm: 600, md: 900 },
+          }}
+        >
+          <CardHeader
+            title={(results as Strecke[])[0].streckennummer}
+            subheader={`${
+              (results as Strecke[])[0].betriebsstelle?.langname
+            } - ${
+              (results as Strecke[])[(results as Strecke[]).length - 1]
+                .betriebsstelle?.langname
+            }`}
+          />
+          <CardContent>
+            <TableContainer>
+              <Table sx={{ minWidth: 400 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Betriebsstelle</TableCell>
+                    <TableCell>km</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {(results as Strecke[]).map((result) => (
+                    <TableRow key={`1` + Math.random()}>
+                      <TableCell>
+                        <Stack
+                          direction={"row"}
+                          spacing={1}
+                          display={"flex"}
+                          alignItems={"center"}
+                        >
+                          <Link
+                            style={{ cursor: "pointer" }}
+                            onClick={() =>
+                              setSearchString(
+                                result.betriebsstelle?.langname || ""
+                              )
+                            }
+                          >
+                            <Typography>
+                              {result.betriebsstelle?.betriebsstellentypen.map(
+                                (bst) => {
+                                  if (bst === "bahnhof") return "Bf ";
+                                  if (bst === "bahnhofsteil") return "Bft ";
+                                  if (bst === "haltepunkt") return "Hp ";
+                                  if (bst === "abzweigstelle") return "Azwst ";
+                                  if (bst === "ueberleitstelle") return "Üst ";
+                                }
+                              )}
+                              {result.betriebsstelle?.langname}
+                            </Typography>
+                          </Link>
+                          <Typography>
+                            {" (" + result.betriebsstelle?.ds100 + ")"}
+                          </Typography>
+                          {result.betriebsstelle?.elektrifiziert && (
+                            <Bolt color="warning" />
+                          )}
+                        </Stack>
+                      </TableCell>
+                      <TableCell>{result.km.toFixed(3)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </CardContent>
+        </Card>
+      </Box>
+    )
   );
 }
 

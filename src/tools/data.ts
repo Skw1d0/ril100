@@ -47,7 +47,40 @@ export interface Data {
   ordnungsrahmen: Ordnungsrahmen;
 }
 
+export interface Strecke {
+  betriebsstelle?: Betriebsstelle;
+  streckennummer: number;
+  km: number;
+}
+
 const dataTyped = data as Data;
+
+export function findStrecke(query: number): Strecke[] {
+  const seen = new Set<string>();
+  const results: Strecke[] = [];
+
+  const pushIfNew = (b: Streckensegment) => {
+    if (!seen.has(b.von)) {
+      seen.add(b.von);
+      results.push({
+        streckennummer: b.streckennummer,
+        betriebsstelle: dataTyped.ordnungsrahmen.betriebsstellen.find(
+          (c) => c.ds100 === b.von
+        ),
+        km: b.von_km,
+      });
+    }
+  };
+
+  for (const b of dataTyped.ordnungsrahmen.streckensegmente) {
+    if (b.streckennummer === query) {
+      pushIfNew(b);
+    }
+  }
+  results.sort((a, b) => a.km - b.km);
+
+  return results;
+}
 
 export function findBetriebstellen(query: string): Betriebsstelle[] {
   const q = query.trim().toLowerCase();

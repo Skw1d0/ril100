@@ -14,9 +14,9 @@ import { Cancel, DarkMode, LightMode } from "@mui/icons-material";
 import { THEME } from "../styles/theme";
 
 interface NavbarParams {
-  searchTerm: string;
+  searchString: string;
   currentTheme: THEME;
-  setSearchTerm: (value: string) => void;
+  setSearchString: (value: string) => void;
   changeTheme: (value: THEME) => void;
 }
 
@@ -27,9 +27,9 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
 }));
 
 function Navbar({
-  searchTerm,
+  searchString: searchTerm,
   currentTheme,
-  setSearchTerm,
+  setSearchString: setSearchTerm,
   changeTheme,
 }: NavbarParams) {
   const theme = useTheme();
@@ -62,7 +62,7 @@ function Navbar({
               },
             }}
             sx={{ mx: 2 }}
-            placeholder="Betriebsstelle"
+            placeholder="Betriebsstelle oder VzG"
             fullWidth
             variant="standard"
             onChange={(e) => setSearchTerm(e.target.value)}

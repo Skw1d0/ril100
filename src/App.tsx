@@ -8,31 +8,44 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider } from "@mui/material/styles";
 import { darkTheme, lightTheme, THEME } from "./styles/theme";
-import { findBetriebstellen, type Betriebsstelle } from "./tools/data";
+import {
+  findBetriebstellen,
+  findStrecke,
+  type Betriebsstelle,
+  type Strecke,
+} from "./tools/data";
 // import Search from "./components/Search";
 import Navbar from "./components/navbar";
 
 export default function App() {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [results, setResults] = useState<Betriebsstelle[]>([]);
   const [theme, setTheme] = useState<THEME>(
     prefersDarkMode ? THEME.Dark : THEME.Light
   );
+  const [searchString, setSearchString] = useState("");
+  const [results, setResults] = useState<Betriebsstelle[] | Strecke[]>([]);
+  const [isStrecke, setIsStrecke] = useState(false);
 
   useEffect(() => {
-    setResults(findBetriebstellen(searchTerm).slice(0, 10));
-  }, [searchTerm]);
+    const onlyDigits = /^\d+$/;
+    if (onlyDigits.test(searchString)) {
+      setIsStrecke(true);
+      setResults(findStrecke(Number(searchString)));
+    } else {
+      setIsStrecke(false);
+      setResults(findBetriebstellen(searchString).slice(0, 10));
+    }
+  }, [searchString]);
 
   return (
     <ThemeProvider theme={theme == THEME.Dark ? darkTheme : lightTheme}>
       <CssBaseline />
 
       <Navbar
-        searchTerm={searchTerm}
+        searchString={searchString}
         currentTheme={theme}
-        setSearchTerm={setSearchTerm}
+        setSearchString={setSearchString}
         changeTheme={setTheme}
       />
       {/* <Search
@@ -42,7 +55,11 @@ export default function App() {
         changeTheme={setTheme}
       /> */}
       <Box component="main" sx={{ flex: 1 }}>
-        <ResultList results={results} setSearchTerm={setSearchTerm} />
+        <ResultList
+          isStrecke={isStrecke}
+          results={results}
+          setSearchString={setSearchString}
+        />
       </Box>
     </ThemeProvider>
   );
