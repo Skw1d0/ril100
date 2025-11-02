@@ -16,22 +16,22 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { Bolt, Map, PictureInPicture, Train } from "@mui/icons-material";
+import { Bolt, LocationPin, Map, PictureInPicture } from "@mui/icons-material";
 import {
   findStreckensegmente,
   type Betriebsstelle,
   type Strecke,
 } from "../tools/data";
-import {
-  openAPN,
-  openGoogleMaps,
-  openOpenrailwaymaps,
-} from "../tools/openWebsite";
+import { openAPN, openGoogleMaps } from "../tools/openWebsite";
 
 interface ResultListProps {
   isStrecke: boolean;
   results: Betriebsstelle[] | Strecke[];
   setSearchString: (value: string) => void;
+  setMapOpen: (value: boolean) => void;
+  setMapView: (
+    value: { center: [number, number]; zoom: number } | null
+  ) => void;
 }
 
 const StyledIconButton = styled(IconButton)(({ theme }) => ({
@@ -42,16 +42,24 @@ const StyledIconButton = styled(IconButton)(({ theme }) => ({
   },
 }));
 
-function ResultList({ isStrecke, results, setSearchString }: ResultListProps) {
+function ResultList({
+  isStrecke,
+  results,
+  setSearchString,
+  setMapOpen,
+  setMapView,
+}: ResultListProps) {
   return !isStrecke ? (
-    <Box sx={{ display: "flex", justifyContent: "center" }}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+      }}
+    >
       <Stack
         direction={"column"}
         spacing={1}
         sx={{
-          // px: 1,
-          marginTop: 10,
-          marginBottom: 3,
           width: { xs: "calc(100% - 10px)", sm: 600, md: 900 },
         }}
       >
@@ -170,14 +178,18 @@ function ResultList({ isStrecke, results, setSearchString }: ResultListProps) {
               </StyledIconButton>
               <StyledIconButton
                 disabled={!result.geo_koordinaten ? true : false}
-                onClick={() =>
-                  openOpenrailwaymaps(
-                    result.geo_koordinaten.breite,
-                    result.geo_koordinaten.laenge
-                  )
-                }
+                onClick={() => {
+                  setMapOpen(true);
+                  setMapView({
+                    center: [
+                      result.geo_koordinaten.breite,
+                      result.geo_koordinaten.laenge,
+                    ],
+                    zoom: 17,
+                  });
+                }}
               >
-                <Train />
+                <LocationPin />
               </StyledIconButton>
               <StyledIconButton
                 disabled={!result.geo_koordinaten ? true : false}
@@ -204,12 +216,7 @@ function ResultList({ isStrecke, results, setSearchString }: ResultListProps) {
         }}
       >
         <Card
-          // direction={"column"}
-          // spacing={1}
           sx={{
-            // px: 1,
-            marginTop: 10,
-            marginBottom: 3,
             width: { xs: "calc(100% - 10px)", sm: 600, md: 900 },
           }}
         >
@@ -224,11 +231,12 @@ function ResultList({ isStrecke, results, setSearchString }: ResultListProps) {
           />
           <CardContent>
             <TableContainer>
-              <Table sx={{ minWidth: 400 }}>
+              <Table sx={{ minWidth: 700 }}>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Betriebsstelle</TableCell>
-                    <TableCell>km</TableCell>
+                    <TableCell sx={{ width: 600 }}>Betriebsstelle</TableCell>
+                    <TableCell sx={{ width: 150 }}>km</TableCell>
+                    <TableCell sx={{ width: 100 }}></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -271,6 +279,54 @@ function ResultList({ isStrecke, results, setSearchString }: ResultListProps) {
                         </Stack>
                       </TableCell>
                       <TableCell>{result.km.toFixed(3)}</TableCell>
+                      <TableCell>
+                        <Stack direction="row" spacing={1} justifyContent="end">
+                          <StyledIconButton
+                            disabled={!result.betriebsstelle?.bahnhof}
+                            onClick={() =>
+                              openAPN(result.betriebsstelle?.ds100)
+                            }
+                          >
+                            <PictureInPicture />
+                          </StyledIconButton>
+                          {result.betriebsstelle && (
+                            <StyledIconButton
+                              disabled={
+                                !result.betriebsstelle?.geo_koordinaten
+                                  ? true
+                                  : false
+                              }
+                              onClick={() => {
+                                const geo =
+                                  result.betriebsstelle?.geo_koordinaten;
+                                if (!geo) return;
+                                setMapOpen(true);
+                                setMapView({
+                                  center: [geo.breite, geo.laenge],
+                                  zoom: 17,
+                                });
+                              }}
+                            >
+                              <LocationPin />
+                            </StyledIconButton>
+                          )}
+                          <StyledIconButton
+                            disabled={
+                              !result.betriebsstelle?.geo_koordinaten
+                                ? true
+                                : false
+                            }
+                            onClick={() =>
+                              openGoogleMaps(
+                                result.betriebsstelle?.geo_koordinaten.breite,
+                                result.betriebsstelle?.geo_koordinaten.laenge
+                              )
+                            }
+                          >
+                            <Map />
+                          </StyledIconButton>
+                        </Stack>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

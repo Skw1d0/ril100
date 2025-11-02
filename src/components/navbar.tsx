@@ -7,37 +7,76 @@ import {
   TextField,
   Toolbar,
   useTheme,
+  type AppBarProps,
 } from "@mui/material";
 // import Logo from "../assets/logo.svg";
 import SearchIcon from "@mui/icons-material/Search";
 import { Cancel, DarkMode, LightMode } from "@mui/icons-material";
 import { THEME } from "../styles/theme";
 
-interface NavbarParams {
+// const drawerWidth = 800;
+
+interface NavbarPrpos {
   searchString: string;
   currentTheme: THEME;
+  mapOpen: boolean;
+  drawerWidth: number;
   setSearchString: (value: string) => void;
   changeTheme: (value: THEME) => void;
 }
 
-const StyledAppBar = styled(AppBar)(({ theme }) => ({
+// const StyledAppBar = styled(AppBar)(({ theme }) => ({
+//   backgroundColor: theme.palette.background.paper,
+//   color: "inherit",
+//   justifyContent: "center",
+// }));
+
+interface StyledAppBarProps extends AppBarProps {
+  mapOpen: boolean;
+  drawerWidth: number;
+}
+
+const StyledAppBar = styled(AppBar, {
+  shouldForwardProp: (prop) => prop !== "mapOpen" && prop !== "drawerWidth",
+})<StyledAppBarProps>(({ theme, drawerWidth, mapOpen }) => ({
+  left: "auto",
+  right: "auto",
   backgroundColor: theme.palette.background.paper,
-  color: "inherit",
-  justifyContent: "center",
+  boxSizing: "border-box",
+  transition: theme.transitions.create(["margin", "width"], {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  width: mapOpen ? `calc(100vw - ${drawerWidth}px)` : "100vw",
+  marginRight: mapOpen ? `${drawerWidth}px` : "0px",
 }));
 
 function Navbar({
   searchString: searchTerm,
   currentTheme,
-  setSearchString: setSearchTerm,
+  mapOpen: mapOpen,
+  drawerWidth,
+  setSearchString,
   changeTheme,
-}: NavbarParams) {
+}: NavbarPrpos) {
   const theme = useTheme();
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <StyledAppBar>
-        <Toolbar sx={{ width: { xs: "100%", sm: 600, md: 900 }, mx: "auto" }}>
+      <StyledAppBar mapOpen={mapOpen} drawerWidth={drawerWidth}>
+        <Toolbar
+          sx={{
+            width: {
+              xs: "100%",
+              sm: mapOpen ? "100%" : 600,
+              md: mapOpen ? "100%" : 900,
+              lg: mapOpen ? "100%" : 900,
+              xl: mapOpen ? 900 : 900,
+            },
+            mx: "auto",
+          }}
+        >
+          {/* <Toolbar> */}
           {/* <img src={Logo} width={48} /> */}
           <TextField
             slotProps={{
@@ -52,7 +91,7 @@ function Navbar({
                     {searchTerm && (
                       <IconButton
                         sx={{ color: theme.palette.primary.main }}
-                        onClick={() => setSearchTerm("")}
+                        onClick={() => setSearchString("")}
                       >
                         <Cancel />
                       </IconButton>
@@ -65,7 +104,7 @@ function Navbar({
             placeholder="Betriebsstelle oder VzG"
             fullWidth
             variant="standard"
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchString(e.target.value)}
             value={searchTerm}
           />
           <Box flexGrow={1} />
