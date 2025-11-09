@@ -27,6 +27,7 @@ import { openAPN, openGoogleMaps } from "../tools/openWebsite";
 interface ResultListProps {
   isStrecke: boolean;
   results: Betriebsstelle[] | Strecke[];
+  compactView: boolean;
   setSearchString: (value: string) => void;
   setMapOpen: (value: boolean) => void;
   setMapView: (
@@ -45,6 +46,7 @@ const StyledIconButton = styled(IconButton)(({ theme }) => ({
 function ResultList({
   isStrecke,
   results,
+  compactView,
   setSearchString,
   setMapOpen,
   setMapView,
@@ -83,91 +85,102 @@ function ResultList({
               }
               subheader={result.ds100}
             />
-            <CardContent>
-              <TableContainer>
-                <Table sx={{ minWidth: 700 }}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ width: 100 }}>VzG</TableCell>
-                      <TableCell sx={{ width: 300 }}>Von</TableCell>
-                      <TableCell sx={{ width: 300 }}></TableCell>
-                      <TableCell sx={{ width: 300 }}>Nach</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {findStreckensegmente(result.ds100).map((line) => (
-                      <TableRow key={Math.random()}>
-                        <TableCell sx={{ alignContent: "start" }}>
-                          <Link
-                            style={{ cursor: "pointer" }}
-                            onClick={() =>
-                              setSearchString(String(line.streckennummer))
-                            }
-                          >
-                            {line.streckennummer}
-                          </Link>
-                        </TableCell>
-                        <TableCell>
-                          <Stack direction={"column"} spacing={0}>
-                            {line.von.segment && (
+            {!compactView && (
+              <CardContent>
+                <TableContainer>
+                  <Table sx={{ minWidth: 700 }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ width: 100 }}>VzG</TableCell>
+                        <TableCell sx={{ width: 300 }}>Von</TableCell>
+                        <TableCell sx={{ width: 300 }}></TableCell>
+                        <TableCell sx={{ width: 300 }}>Nach</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {findStreckensegmente(result.ds100).map((line) => (
+                        <TableRow key={Math.random()}>
+                          <TableCell sx={{ alignContent: "start" }}>
+                            <Link
+                              style={{ cursor: "pointer" }}
+                              onClick={() =>
+                                setSearchString(String(line.streckennummer))
+                              }
+                            >
+                              {line.streckennummer}
+                            </Link>
+                          </TableCell>
+                          <TableCell>
+                            <Stack direction={"column"} spacing={0}>
+                              {line.von.segment && (
+                                <>
+                                  <Link
+                                    style={{ cursor: "pointer" }}
+                                    onClick={() =>
+                                      setSearchString(
+                                        line.von.betriebsstelle?.langname || ""
+                                      )
+                                    }
+                                  >
+                                    <Typography>
+                                      {line.von.betriebsstelle?.langname}
+                                    </Typography>
+                                  </Link>
+                                  <Typography fontWeight={100}>
+                                    {line.von.segment.von_km.toFixed(3)}
+                                  </Typography>
+                                </>
+                              )}
+                            </Stack>
+                          </TableCell>
+                          <TableCell>
+                            <Stack direction={"column"} spacing={0}>
+                              <Link
+                                style={{ cursor: "pointer" }}
+                                onClick={() =>
+                                  setSearchString(
+                                    line.betriebsstelle?.langname || ""
+                                  )
+                                }
+                              >
+                                <Typography>
+                                  {line.betriebsstelle?.langname}
+                                </Typography>
+                              </Link>
+                              <Typography fontWeight={100}>
+                                {line.von.segment?.bis_km.toFixed(3) ||
+                                  line.bis.segment?.von_km.toFixed(3)}
+                              </Typography>
+                            </Stack>
+                          </TableCell>
+                          <TableCell>
+                            {line.bis.segment && (
                               <>
                                 <Link
                                   style={{ cursor: "pointer" }}
                                   onClick={() =>
                                     setSearchString(
-                                      line.von.betriebsstelle?.langname || ""
+                                      line.bis.betriebsstelle?.langname || ""
                                     )
                                   }
                                 >
                                   <Typography>
-                                    {line.von.betriebsstelle?.langname}
+                                    {line.bis.betriebsstelle?.langname}
                                   </Typography>
                                 </Link>
                                 <Typography fontWeight={100}>
-                                  {line.von.segment.von_km.toFixed(3)}
+                                  {line.bis.segment.bis_km.toFixed(3)}
                                 </Typography>
                               </>
                             )}
-                          </Stack>
-                        </TableCell>
-                        <TableCell>
-                          <Stack direction={"column"} spacing={0}>
-                            <Typography>
-                              {line.betriebsstelle?.langname}
-                            </Typography>
-                            <Typography fontWeight={100}>
-                              {line.von.segment?.bis_km.toFixed(3) ||
-                                line.bis.segment?.von_km.toFixed(3)}
-                            </Typography>
-                          </Stack>
-                        </TableCell>
-                        <TableCell>
-                          {line.bis.segment && (
-                            <>
-                              <Link
-                                style={{ cursor: "pointer" }}
-                                onClick={() =>
-                                  setSearchString(
-                                    line.bis.betriebsstelle?.langname || ""
-                                  )
-                                }
-                              >
-                                <Typography>
-                                  {line.bis.betriebsstelle?.langname}
-                                </Typography>
-                              </Link>
-                              <Typography fontWeight={100}>
-                                {line.bis.segment.bis_km.toFixed(3)}
-                              </Typography>
-                            </>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            )}
             <CardActions>
               <Box flexGrow={1} />
               <StyledIconButton

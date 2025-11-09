@@ -128,6 +128,27 @@ export function findBetriebstellen(query: string): Betriebsstelle[] {
   return results;
 }
 
+export function findBetriebsstelleByNumber(query: string) {
+  const seen = new Set<string>();
+  const vzgBst = dataTyped.ordnungsrahmen.streckensegmente
+    .filter((strecke) => strecke.streckennummer === Number(query))
+    .sort((a, b) => a.von_km - b.von_km)
+    .map((a) => {
+      if (!seen.has(a.von)) {
+        seen.add(a.von);
+        return a;
+      }
+    })
+    .filter((a) => a !== undefined)
+    .map((s) => {
+      return dataTyped.ordnungsrahmen.betriebsstellen.find(
+        (bst) => bst.ds100 === s.von
+      );
+    })
+    .filter((b): b is Betriebsstelle => b !== undefined);
+  return vzgBst;
+}
+
 export function groupSegmenteByStreckennummer(
   segments?: Streckensegment[]
 ): { streckennummer: number; segmente: Streckensegment[] }[] {
@@ -201,4 +222,13 @@ export function getDataInfo(): {
     gueltig_von: dataTyped.gueltig_von,
     gueltig_bis: dataTyped.gueltig_bis,
   };
+}
+
+export function findBst(query: string): Betriebsstelle[] {
+  const onlyDigits = /^\d+$/;
+
+  if (onlyDigits.test(query)) {
+    return findBetriebsstelleByNumber(query);
+  }
+  return findBetriebstellen(query).slice(0, 10);
 }

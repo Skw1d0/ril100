@@ -11,25 +11,26 @@ import {
 } from "@mui/material";
 // import Logo from "../assets/logo.svg";
 import SearchIcon from "@mui/icons-material/Search";
-import { Cancel, DarkMode, LightMode } from "@mui/icons-material";
-import { THEME } from "../styles/theme";
+import {
+  Cancel,
+  DarkMode,
+  LightMode,
+  ViewAgenda,
+  ViewHeadline,
+} from "@mui/icons-material";
 
-// const drawerWidth = 800;
+import { THEME } from "../styles/theme";
 
 interface NavbarPrpos {
   searchString: string;
   currentTheme: THEME;
   mapOpen: boolean;
+  compactView: boolean;
   drawerWidth: number;
   setSearchString: (value: string) => void;
-  changeTheme: (value: THEME) => void;
+  setTheme: (value: THEME) => void;
+  setCompactView: (value: boolean) => void;
 }
-
-// const StyledAppBar = styled(AppBar)(({ theme }) => ({
-//   backgroundColor: theme.palette.background.paper,
-//   color: "inherit",
-//   justifyContent: "center",
-// }));
 
 interface StyledAppBarProps extends AppBarProps {
   mapOpen: boolean;
@@ -54,73 +55,76 @@ const StyledAppBar = styled(AppBar, {
 function Navbar({
   searchString: searchTerm,
   currentTheme,
-  mapOpen: mapOpen,
+  mapOpen,
+  compactView,
   drawerWidth,
   setSearchString,
-  changeTheme,
+  setTheme,
+  setCompactView,
 }: NavbarPrpos) {
   const theme = useTheme();
-
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <StyledAppBar mapOpen={mapOpen} drawerWidth={drawerWidth}>
-        <Toolbar
-          sx={{
-            width: {
-              xs: "100%",
-              sm: mapOpen ? "100%" : 600,
-              md: mapOpen ? "100%" : 900,
-              lg: mapOpen ? "100%" : 900,
-              xl: mapOpen ? 900 : 900,
+    <StyledAppBar mapOpen={mapOpen} drawerWidth={drawerWidth}>
+      <Toolbar
+        sx={{
+          width: {
+            xs: "100%",
+            sm: mapOpen ? "100%" : 600,
+            md: mapOpen ? "100%" : 900,
+            lg: mapOpen ? "100%" : 900,
+            xl: mapOpen ? 900 : 900,
+          },
+          mx: "auto",
+        }}
+      >
+        {/* <Toolbar> */}
+        {/* <img src={Logo} width={48} /> */}
+        <TextField
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: theme.palette.primary.main }} />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  {searchTerm && (
+                    <IconButton
+                      sx={{ color: theme.palette.primary.main }}
+                      onClick={() => setSearchString("")}
+                    >
+                      <Cancel />
+                    </IconButton>
+                  )}
+                </InputAdornment>
+              ),
             },
-            mx: "auto",
           }}
+          sx={{ mx: 2 }}
+          placeholder="Betriebsstelle oder VzG"
+          fullWidth
+          variant="standard"
+          onChange={(e) => setSearchString(e.target.value)}
+          value={searchTerm}
+        />
+        <Box flexGrow={1} />
+        <IconButton
+          sx={{ color: theme.palette.primary.main }}
+          onClick={() =>
+            setTheme(currentTheme == THEME.Light ? THEME.Dark : THEME.Light)
+          }
         >
-          {/* <Toolbar> */}
-          {/* <img src={Logo} width={48} /> */}
-          <TextField
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon sx={{ color: theme.palette.primary.main }} />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    {searchTerm && (
-                      <IconButton
-                        sx={{ color: theme.palette.primary.main }}
-                        onClick={() => setSearchString("")}
-                      >
-                        <Cancel />
-                      </IconButton>
-                    )}
-                  </InputAdornment>
-                ),
-              },
-            }}
-            sx={{ mx: 2 }}
-            placeholder="Betriebsstelle oder VzG"
-            fullWidth
-            variant="standard"
-            onChange={(e) => setSearchString(e.target.value)}
-            value={searchTerm}
-          />
-          <Box flexGrow={1} />
-          <IconButton
-            sx={{ color: theme.palette.primary.main }}
-            onClick={() =>
-              changeTheme(
-                currentTheme == THEME.Light ? THEME.Dark : THEME.Light
-              )
-            }
-          >
-            {currentTheme == THEME.Dark ? <LightMode /> : <DarkMode />}
-          </IconButton>
-        </Toolbar>
-      </StyledAppBar>
-    </Box>
+          {currentTheme == THEME.Light ? <LightMode /> : <DarkMode />}
+        </IconButton>
+        <IconButton
+          sx={{ color: theme.palette.primary.main }}
+          onClick={() => setCompactView(!compactView)}
+        >
+          {compactView ? <ViewHeadline /> : <ViewAgenda />}
+        </IconButton>
+      </Toolbar>
+    </StyledAppBar>
   );
 }
 

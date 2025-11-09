@@ -3,15 +3,27 @@ import "leaflet/dist/leaflet.css";
 
 import ResultList from "./components/result-list";
 import { useEffect, useState } from "react";
-import { Box, Drawer, IconButton, type BoxProps } from "@mui/material";
+import dayjs from "dayjs";
+import {
+  Box,
+  Divider,
+  Drawer,
+  IconButton,
+  Paper,
+  Stack,
+  Typography,
+  type BoxProps,
+} from "@mui/material";
 
-import useMediaQuery from "@mui/material/useMediaQuery";
+// import useMediaQuery from "@mui/material/useMediaQuery";
 import CssBaseline from "@mui/material/CssBaseline";
 import { styled, ThemeProvider } from "@mui/material/styles";
 import { darkTheme, lightTheme, THEME } from "./styles/theme";
 import {
-  findBetriebstellen,
-  findStrecke,
+  // findBetriebstellen,
+  findBst,
+  getDataInfo,
+  // findStrecke,
   type Betriebsstelle,
   type Strecke,
 } from "./tools/data";
@@ -19,8 +31,6 @@ import {
 import Navbar from "./components/navbar";
 import Map from "./components/map";
 import { Close } from "@mui/icons-material";
-
-// const drawerWidth = 800;
 
 interface MainProps extends BoxProps {
   open: boolean;
@@ -30,8 +40,6 @@ interface MainProps extends BoxProps {
 const Main = styled(Box, {
   shouldForwardProp: (prop) => prop !== "open" && prop !== "drawerWidth",
 })<MainProps>(({ theme, open, drawerWidth }) => ({
-  // width: "100%",
-  // marginRight: 0,
   padding: 10,
   boxSizing: "border-box",
   transition: theme.transitions.create(["margin", "width"], {
@@ -40,19 +48,26 @@ const Main = styled(Box, {
   }),
   width: open ? `calc(100% - ${drawerWidth}px)` : "100&",
   marginRight: open ? drawerWidth : 0,
-  // variants: [
-  //   {
-  //     props: ({ open }) => open,
-  //     style: {
-  //       width: `calc(100% - ${drawerWidth}px)`,
-  //       marginRight: `${drawerWidth}px`,
-  //       transition: theme.transitions.create(["margin", "width"], {
-  //         easing: theme.transitions.easing.easeOut,
-  //         duration: theme.transitions.duration.enteringScreen,
-  //       }),
-  //     },
-  //   },
-  // ],
+  flex: 1,
+  // backgroundColor: "magenta",
+  // minHeight: 0,
+}));
+
+const Footer = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "open" && prop !== "drawerWidth",
+})<MainProps>(({ theme, open, drawerWidth }) => ({
+  boxSizing: "border-box",
+  // position: "sticky",
+  // bottom: 0,
+  // left: 0,
+  transition: theme.transitions.create(["margin", "width"], {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  width: open ? `calc(100% - ${drawerWidth}px)` : "100&",
+  marginRight: open ? drawerWidth : 0,
+  marginTop: "auto",
+  // flex: 1,
 }));
 
 const StyledCloseButton = styled(IconButton)(({ theme }) => ({
@@ -76,13 +91,26 @@ function useWindowWidth(
 }
 
 export default function App() {
-  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+  // const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const windowWidth = useWindowWidth();
+  const { anzeigename, gueltig_von, gueltig_bis } = getDataInfo();
 
+  // const [theme, setTheme] = useState<THEME>(
+  //   prefersDarkMode ? THEME.Dark : THEME.Light
+  // );
   const [theme, setTheme] = useState<THEME>(
-    prefersDarkMode ? THEME.Dark : THEME.Light
+    window.localStorage.getItem("theme") === null ||
+      window.localStorage.getItem("theme") === "0"
+      ? THEME.Light
+      : THEME.Dark
   );
-  const [mapOpen, setMapOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(windowWidth >= 1160 ? true : false);
+  const [compactView, setCompactView] = useState<boolean>(
+    window.localStorage.getItem("compactView") === null ||
+      window.localStorage.getItem("compactView") === "0"
+      ? false
+      : true
+  );
   const [searchString, setSearchString] = useState("");
   const [isStrecke, setIsStrecke] = useState(false);
   const [results, setResults] = useState<Betriebsstelle[] | Strecke[]>([]);
@@ -98,6 +126,16 @@ export default function App() {
     else return 800;
   });
 
+  const changeTheme = (value: THEME) => {
+    window.localStorage.setItem("theme", value.toString());
+    setTheme(value);
+  };
+
+  const changeCompactView = (value: boolean) => {
+    window.localStorage.setItem("compactView", value ? "1" : "0");
+    setCompactView(value);
+  };
+
   useEffect(() => {
     if (windowWidth < 1160) setDrawerWidth(windowWidth);
     else if (windowWidth <= 1360) setDrawerWidth(400);
@@ -106,91 +144,178 @@ export default function App() {
     else setDrawerWidth(800);
   }, [windowWidth]);
 
-  useEffect(() => {
-    const onlyDigits = /^\d+$/;
-    if (onlyDigits.test(searchString)) {
-      const result = findStrecke(Number(searchString));
-      setIsStrecke(true);
-      setResults(result);
+  // useEffect(() => {
+  //   const onlyDigits = /^\d+$/;
+  //   if (onlyDigits.test(searchString)) {
+  //     const result = findStrecke(Number(searchString));
+  //     setIsStrecke(true);
+  //     setResults(result);
 
-      const strecken = result as Strecke[];
-      const first = strecken[0];
-      if (first?.betriebsstelle?.geo_koordinaten) {
-        setMapView({
-          center: [
-            first.betriebsstelle.geo_koordinaten.breite,
-            first.betriebsstelle.geo_koordinaten.laenge,
-          ],
-          zoom: 17,
-        });
-      }
-    } else {
-      const results = findBetriebstellen(searchString).slice(0, 10);
-      setIsStrecke(false);
-      setResults(results);
-      if ((results as Betriebsstelle[])[0]?.geo_koordinaten) {
-        setMapView({
-          center: [
-            results[0].geo_koordinaten.breite,
-            results[0].geo_koordinaten.laenge,
-          ],
-          zoom: 17,
-        });
-      }
+  //     const strecken = result as Strecke[];
+  //     const first = strecken[0];
+  //     if (first?.betriebsstelle?.geo_koordinaten) {
+  //       setMapView({
+  //         center: [
+  //           first.betriebsstelle.geo_koordinaten.breite,
+  //           first.betriebsstelle.geo_koordinaten.laenge,
+  //         ],
+  //         zoom: 17,
+  //       });
+  //     }
+  //   } else {
+  //     const results = findBetriebstellen(searchString).slice(0, 10);
+  //     setIsStrecke(false);
+  //     setResults(results);
+  //     if ((results as Betriebsstelle[])[0]?.geo_koordinaten) {
+  //       setMapView({
+  //         center: [
+  //           results[0].geo_koordinaten.breite,
+  //           results[0].geo_koordinaten.laenge,
+  //         ],
+  //         zoom: 17,
+  //       });
+  //     }
+  //   }
+  // }, [searchString]);
+
+  useEffect(() => {
+    const results = findBst(searchString);
+    if (results[0]?.geo_koordinaten) {
+      setMapView({
+        center: [
+          results[0].geo_koordinaten.breite,
+          results[0].geo_koordinaten.laenge,
+        ],
+        zoom: 17,
+      });
     }
+    setIsStrecke(false);
+    setResults(results);
   }, [searchString]);
 
   return (
     <ThemeProvider theme={theme == THEME.Dark ? darkTheme : lightTheme}>
       <CssBaseline />
-      <Drawer
-        open={mapOpen}
-        variant="persistent"
-        anchor="right"
+
+      <Box
         sx={{
-          position: "relative",
-          width: drawerWidth,
+          height: "100vh",
+          margin: 0,
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        <Box sx={{ width: drawerWidth, height: "100vh", position: "relative" }}>
+        <Drawer
+          open={mapOpen}
+          variant="persistent"
+          anchor="right"
+          sx={{
+            position: "relative",
+            width: drawerWidth,
+          }}
+        >
           <Box
-            sx={{
-              position: "absolute",
-              top: "8px",
-              right: "8px",
-              zIndex: 2000,
-            }}
+            sx={{ width: drawerWidth, height: "100vh", position: "relative" }}
           >
-            <StyledCloseButton onClick={() => setMapOpen(false)}>
-              <Close />
-            </StyledCloseButton>
-          </Box>
+            <Box
+              sx={{
+                position: "absolute",
+                top: "8px",
+                right: "8px",
+                zIndex: 2000,
+              }}
+            >
+              <StyledCloseButton onClick={() => setMapOpen(false)}>
+                <Close />
+              </StyledCloseButton>
+            </Box>
 
-          <Box sx={{ width: "100%", height: "100%", paddingLeft: 0.05 }}>
-            <Map mapView={mapView} />
+            <Box sx={{ width: "100%", height: "100%", paddingLeft: 0.05 }}>
+              <Map mapView={mapView} />
+            </Box>
           </Box>
-        </Box>
-      </Drawer>
+        </Drawer>
 
-      <Navbar
-        searchString={searchString}
-        currentTheme={theme}
-        mapOpen={mapOpen}
-        drawerWidth={drawerWidth}
-        setSearchString={setSearchString}
-        changeTheme={setTheme}
-      />
-      <Main open={mapOpen} drawerWidth={drawerWidth}>
-        <Box sx={{ marginTop: 8 }}>
-          <ResultList
-            isStrecke={isStrecke}
-            results={results}
-            setMapOpen={setMapOpen}
-            setSearchString={setSearchString}
-            setMapView={setMapView}
-          />
-        </Box>
-      </Main>
+        <Navbar
+          searchString={searchString}
+          currentTheme={theme}
+          mapOpen={mapOpen}
+          compactView={compactView}
+          drawerWidth={drawerWidth}
+          setSearchString={setSearchString}
+          setTheme={changeTheme}
+          setCompactView={changeCompactView}
+        />
+
+        <Main open={mapOpen} drawerWidth={drawerWidth}>
+          <Box sx={{ marginTop: 8 }}>
+            {results.length > 0 && (
+              <ResultList
+                isStrecke={isStrecke}
+                results={results}
+                compactView={compactView}
+                setMapOpen={setMapOpen}
+                setSearchString={setSearchString}
+                setMapView={setMapView}
+              />
+            )}
+          </Box>
+        </Main>
+
+        {results.length > 0 && (
+          <Footer
+            open={mapOpen}
+            drawerWidth={drawerWidth}
+            // sx={{ backgroundColor: "yellow" }}
+          >
+            <Paper
+              elevation={0}
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                padding: 1,
+                borderRadius: 0,
+              }}
+            >
+              <Stack
+                direction={"row"}
+                spacing={1}
+                divider={
+                  <Divider orientation="vertical" variant="middle" flexItem />
+                }
+                sx={{
+                  width: {
+                    xs: "calc(100% - 10px)",
+                    sm: 600,
+                    md: 900,
+                  },
+                }}
+              >
+                <Typography
+                  color="textDisabled"
+                  fontSize={"0.8em"}
+                  fontWeight={100}
+                >
+                  {anzeigename}
+                </Typography>
+                <Typography
+                  color="textDisabled"
+                  fontSize={"0.8em"}
+                  fontWeight={100}
+                >
+                  {`Gültig von ${dayjs(gueltig_von).date()}.${dayjs(
+                    gueltig_von
+                  ).month()}.${dayjs(gueltig_von).year()} bis ${dayjs(
+                    gueltig_bis
+                  ).date()}.${dayjs(gueltig_bis).month()}.${dayjs(
+                    gueltig_bis
+                  ).year()}`}
+                </Typography>
+              </Stack>
+            </Paper>
+          </Footer>
+        )}
+      </Box>
     </ThemeProvider>
   );
 }
