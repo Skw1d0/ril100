@@ -13,6 +13,7 @@ import {
   Stack,
   Typography,
   type BoxProps,
+  type IconButtonProps,
 } from "@mui/material";
 
 // import useMediaQuery from "@mui/material/useMediaQuery";
@@ -29,12 +30,16 @@ import {
 } from "./tools/data";
 
 import Navbar from "./components/navbar";
-import Map from "./components/map";
-import { Close } from "@mui/icons-material";
+import Map, { type Position, type Style } from "./components/map";
+import { Bolt, Close, Speed, Traffic, Train } from "@mui/icons-material";
 
 interface MainProps extends BoxProps {
   open: boolean;
   drawerWidth: number;
+}
+
+interface IconProps extends IconButtonProps {
+  active: boolean;
 }
 
 const Main = styled(Box, {
@@ -78,6 +83,22 @@ const StyledCloseButton = styled(IconButton)(({ theme }) => ({
   },
 }));
 
+const StyledMapIconButton = styled(IconButton, {
+  shouldForwardProp: (prop) => prop !== "active",
+})<IconProps>(({ theme, active }) => ({
+  color: theme.palette.grey[900],
+  backgroundColor: active ? theme.palette.grey[400] : theme.palette.grey[100],
+  borderStyle: "solid",
+  borderWidth: 1,
+  borderColor: theme.palette.grey[500],
+  "&:hover": {
+    backgroundColor: theme.darken(
+      active ? theme.palette.grey[400] : theme.palette.grey[100],
+      0.05
+    ),
+  },
+}));
+
 function useWindowWidth(
   initial = typeof window !== "undefined" ? window.innerWidth : 0
 ) {
@@ -114,10 +135,11 @@ export default function App() {
   const [searchString, setSearchString] = useState("");
   const [isStrecke, setIsStrecke] = useState(false);
   const [results, setResults] = useState<Betriebsstelle[] | Strecke[]>([]);
-  const [mapView, setMapView] = useState<{
-    center: [number, number];
-    zoom: number;
-  } | null>(null);
+  const [mapPosition, setMapPosition] = useState<Position>({
+    center: [0, 0],
+    zoom: 17,
+  });
+  const [mapStyle, setMapStyle] = useState<Style>("standard");
   const [drawerWidth, setDrawerWidth] = useState<number>(() => {
     if (windowWidth < 1160) return windowWidth;
     else if (windowWidth <= 1360) return 400;
@@ -136,6 +158,10 @@ export default function App() {
     setCompactView(value);
   };
 
+  const changeMapStyle = (value: Style) => {
+    setMapStyle(value);
+  };
+
   useEffect(() => {
     if (windowWidth < 1160) setDrawerWidth(windowWidth);
     else if (windowWidth <= 1360) setDrawerWidth(400);
@@ -144,44 +170,10 @@ export default function App() {
     else setDrawerWidth(800);
   }, [windowWidth]);
 
-  // useEffect(() => {
-  //   const onlyDigits = /^\d+$/;
-  //   if (onlyDigits.test(searchString)) {
-  //     const result = findStrecke(Number(searchString));
-  //     setIsStrecke(true);
-  //     setResults(result);
-
-  //     const strecken = result as Strecke[];
-  //     const first = strecken[0];
-  //     if (first?.betriebsstelle?.geo_koordinaten) {
-  //       setMapView({
-  //         center: [
-  //           first.betriebsstelle.geo_koordinaten.breite,
-  //           first.betriebsstelle.geo_koordinaten.laenge,
-  //         ],
-  //         zoom: 17,
-  //       });
-  //     }
-  //   } else {
-  //     const results = findBetriebstellen(searchString).slice(0, 10);
-  //     setIsStrecke(false);
-  //     setResults(results);
-  //     if ((results as Betriebsstelle[])[0]?.geo_koordinaten) {
-  //       setMapView({
-  //         center: [
-  //           results[0].geo_koordinaten.breite,
-  //           results[0].geo_koordinaten.laenge,
-  //         ],
-  //         zoom: 17,
-  //       });
-  //     }
-  //   }
-  // }, [searchString]);
-
   useEffect(() => {
     const results = findBst(searchString);
     if (results[0]?.geo_koordinaten) {
-      setMapView({
+      setMapPosition({
         center: [
           results[0].geo_koordinaten.breite,
           results[0].geo_koordinaten.laenge,
@@ -229,9 +221,37 @@ export default function App() {
                 <Close />
               </StyledCloseButton>
             </Box>
+            <Box sx={{ position: "absolute", top: 90, left: 8, zIndex: 2000 }}>
+              <Stack direction={"column"} spacing={1}>
+                <StyledMapIconButton
+                  active={mapStyle === "standard"}
+                  onClick={() => changeMapStyle("standard")}
+                >
+                  <Train />
+                </StyledMapIconButton>
+                <StyledMapIconButton
+                  active={mapStyle === "signals"}
+                  onClick={() => changeMapStyle("signals")}
+                >
+                  <Traffic />
+                </StyledMapIconButton>
+                <StyledMapIconButton
+                  active={mapStyle === "maxspeed"}
+                  onClick={() => changeMapStyle("maxspeed")}
+                >
+                  <Speed />
+                </StyledMapIconButton>
+                <StyledMapIconButton
+                  active={mapStyle === "electrification"}
+                  onClick={() => changeMapStyle("electrification")}
+                >
+                  <Bolt />
+                </StyledMapIconButton>
+              </Stack>
+            </Box>
 
             <Box sx={{ width: "100%", height: "100%", paddingLeft: 0.05 }}>
-              <Map mapView={mapView} />
+              <Map view={mapPosition} style={mapStyle} />
             </Box>
           </Box>
         </Drawer>
@@ -256,7 +276,7 @@ export default function App() {
                 compactView={compactView}
                 setMapOpen={setMapOpen}
                 setSearchString={setSearchString}
-                setMapView={setMapView}
+                setMapView={setMapPosition}
               />
             )}
           </Box>

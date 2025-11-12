@@ -23,6 +23,7 @@ import {
   type Strecke,
 } from "../tools/data";
 import { openAPN, openGoogleMaps } from "../tools/openWebsite";
+import type { Position } from "./map";
 
 interface ResultListProps {
   isStrecke: boolean;
@@ -30,9 +31,7 @@ interface ResultListProps {
   compactView: boolean;
   setSearchString: (value: string) => void;
   setMapOpen: (value: boolean) => void;
-  setMapView: (
-    value: { center: [number, number]; zoom: number } | null
-  ) => void;
+  setMapView: (value: Position) => void;
 }
 
 const StyledIconButton = styled(IconButton)(({ theme }) => ({

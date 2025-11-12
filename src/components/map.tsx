@@ -1,18 +1,28 @@
-import { useEffect } from "react";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import { useEffect, useState } from "react";
+import { MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
 
-interface MapProps {
-  mapView: {
-    center: [number, number];
-    zoom: number;
-  } | null;
+export type Style =
+  | "standard"
+  | "signals"
+  | "maxspeed"
+  | "electrification"
+  | "gauge";
+
+export interface Position {
+  center: [number, number];
+  zoom: number;
 }
 
-function Recenter({ position }: { position: [number, number] | null }) {
+interface MapProps {
+  view: Position;
+  style: Style;
+}
+
+function Recenter({ position }: { position: Position }) {
   const map = useMap();
   useEffect(() => {
     if (position) {
-      map.setView(position, 17);
+      map.setView(position.center, position.zoom);
     }
   }, [position, map]);
   return null;
@@ -21,6 +31,7 @@ function Recenter({ position }: { position: [number, number] | null }) {
 // new: component that invalidates size on window resize (debounced)
 function ResizeHandler({ trigger }: { trigger?: string }) {
   const map = useMap();
+
   useEffect(() => {
     let t: number | undefined;
     const onResize = () => {
@@ -38,11 +49,29 @@ function ResizeHandler({ trigger }: { trigger?: string }) {
   return null;
 }
 
-function Map({ mapView }: MapProps) {
+function TrackCenter({ onChange }: { onChange: (position: Position) => void }) {
+  const map = useMapEvents({
+    move: () => {
+      const c = map.getCenter();
+      const z = map.getZoom();
+      onChange({ center: [c.lat, c.lng], zoom: z });
+    },
+  });
+
+  return null;
+}
+
+function Map({ view, style }: MapProps) {
+  const [position, setPosition] = useState<Position>(view);
+
+  useEffect(() => {
+    setPosition(view);
+  }, [view]);
+
   return (
     <MapContainer
-      center={[0, 0]}
-      zoom={17}
+      center={position.center}
+      zoom={position.zoom}
       scrollWheelZoom={true}
       style={{ width: "100%", height: "100%" }}
     >
@@ -52,16 +81,18 @@ function Map({ mapView }: MapProps) {
       />
       <TileLayer
         attribution='<a href="https://www.openrailwaymap.org/imprint-de.html">OpenRailwayMaps</a>'
-        url="https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png"
+        url={`https://tiles.openrailwaymap.org/${style}/{z}/{x}/{y}.png`}
       />
-      <Recenter
+      {/* <Recenter
         position={
-          mapView?.center
-            ? [mapView.center[0], mapView.center[1]]
+          view?.center
+            ? [view.center[0], view.center[1]]
             : [49.18904838625939, 10.105822664241146]
         }
-      />
-      <ResizeHandler trigger={mapView?.center?.join(",")} />
+      /> */}
+      <ResizeHandler trigger={view?.center?.join(",")} />
+      <Recenter position={position} />
+      <TrackCenter onChange={setPosition} />
     </MapContainer>
   );
 }
