@@ -6,6 +6,23 @@ import {
   useMap,
   useMapEvents,
 } from "react-leaflet";
+import L from "leaflet";
+import Marker2Image from "../assets/marker-icon-2x.png";
+import MarkerImage from "../assets/marker-icon.png";
+import MarkerShadow from "../assets/marker-shadow.png";
+
+// Fix for default marker icon in deployed environments
+// delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (
+  L.Icon.Default.prototype as unknown as {
+    _getIconUrl?: () => string;
+  }
+)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: Marker2Image,
+  iconUrl: MarkerImage,
+  shadowUrl: MarkerShadow,
+});
 
 export type Style =
   | "standard"
