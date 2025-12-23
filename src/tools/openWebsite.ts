@@ -15,5 +15,6 @@ export function openGoogleMaps(
   lon: number | undefined
 ) {
   if (!lat || !lon) return;
-  window.open(`https://www.google.com/maps/@${lat},${lon},17z`, "_blank");
+  // window.open(`https://www.google.com/maps/@${lat},${lon},17z`, "_blank");
+  window.open(`https://maps.google.com/maps?q=${lat},${lon}`, "_blank");
 }

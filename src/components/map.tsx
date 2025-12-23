@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import {
+  MapContainer,
+  Marker,
+  TileLayer,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
 
 export type Style =
   | "standard"
@@ -90,6 +96,7 @@ function Map({ view, style }: MapProps) {
             : [49.18904838625939, 10.105822664241146]
         }
       /> */}
+      <Marker position={[view.center[0], view.center[1]]} />
       <ResizeHandler trigger={view?.center?.join(",")} />
       <Recenter position={position} />
       <TrackCenter onChange={setPosition} />

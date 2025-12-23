@@ -11,7 +11,8 @@ Die Ril100 ist eine Richtlinie der Deutschen Bahn. Sie beinhaltet ein Verzeichni
 
 In der Anwendung bietet:
 
-- Suche von Betriebsstellen gemäß DS100 oder Streckennummer
+- Suche von Betriebsstellen gemäß Betriebsstellenname, DS100 oder Streckennummer
+- Suche nach Streckenkillomentrierung bei Eingabe der Streckennummer (gem. API Openrailwaymaps)
 - Angrenzende Betriebsstellen werden mit Killomenterangabe und Streckennumer angezeigt
 - Downloadfunktion von APN-Plänen (falls vorhanden)
 - Anzeige von OpenStreetMaps i.V.m. Openrailwaymaps der ausgewählten Betriebsstelle

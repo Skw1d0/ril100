@@ -47,40 +47,44 @@ export interface Data {
   ordnungsrahmen: Ordnungsrahmen;
 }
 
-export interface Strecke {
-  betriebsstelle?: Betriebsstelle;
-  streckennummer: number;
-  km: number;
+interface MilestoneData {
+  osm_id: number;
+  railway: string;
+  position: number;
+  longitude: number;
+  latitude: number;
+  ref: string;
+  operator: string;
 }
 
 const dataTyped = data as Data;
 
-export function findStrecke(query: number): Strecke[] {
-  const seen = new Set<string>();
-  const results: Strecke[] = [];
+// export function findStrecke(query: number): Strecke[] {
+//   const seen = new Set<string>();
+//   const results: Strecke[] = [];
 
-  const pushIfNew = (b: Streckensegment) => {
-    if (!seen.has(b.von)) {
-      seen.add(b.von);
-      results.push({
-        streckennummer: b.streckennummer,
-        betriebsstelle: dataTyped.ordnungsrahmen.betriebsstellen.find(
-          (c) => c.ds100 === b.von
-        ),
-        km: b.von_km,
-      });
-    }
-  };
+//   const pushIfNew = (b: Streckensegment) => {
+//     if (!seen.has(b.von)) {
+//       seen.add(b.von);
+//       results.push({
+//         streckennummer: b.streckennummer,
+//         betriebsstelle: dataTyped.ordnungsrahmen.betriebsstellen.find(
+//           (c) => c.ds100 === b.von
+//         ),
+//         km: b.von_km,
+//       });
+//     }
+//   };
 
-  for (const b of dataTyped.ordnungsrahmen.streckensegmente) {
-    if (b.streckennummer === query) {
-      pushIfNew(b);
-    }
-  }
-  results.sort((a, b) => a.km - b.km);
+//   for (const b of dataTyped.ordnungsrahmen.streckensegmente) {
+//     if (b.streckennummer === query) {
+//       pushIfNew(b);
+//     }
+//   }
+//   results.sort((a, b) => a.km - b.km);
 
-  return results;
-}
+//   return results;
+// }
 
 export function findBetriebstellen(query: string): Betriebsstelle[] {
   const q = query.trim().toLowerCase();
@@ -224,11 +228,43 @@ export function getDataInfo(): {
   };
 }
 
-export function findBst(query: string): Betriebsstelle[] {
+export function findBst(searchString: string) {
   const onlyDigits = /^\d+$/;
 
-  if (onlyDigits.test(query)) {
-    return findBetriebsstelleByNumber(query);
+  if (onlyDigits.test(searchString)) {
+    return findBetriebsstelleByNumber(searchString);
   }
-  return findBetriebstellen(query).slice(0, 10);
+  return findBetriebstellen(searchString).slice(0, 10);
+}
+
+const convertMilestonesToBetriebsstellen = (
+  milestones: MilestoneData[]
+): Betriebsstelle[] => {
+  return milestones.map((milestone) => ({
+    x: milestone.longitude,
+    y: milestone.latitude,
+    ds100: `km ${milestone.position.toFixed(3).toString()}`,
+    betriebsstellentypen: [],
+    primary_location_code: "",
+    langname: milestone.ref,
+    geo_koordinaten: {
+      breite: milestone.latitude,
+      laenge: milestone.longitude,
+    },
+    elektrifiziert: false,
+    bahnhof: false,
+  }));
+};
+
+export async function findMilestoneFromOpenrailway(
+  searchString: string,
+  searchStringKm: string
+): Promise<Betriebsstelle[]> {
+  if (!searchString || !searchStringKm) return [];
+  const data = await fetch(
+    `https://api.openrailwaymap.org/v2/milestone?ref=${searchString}&position=${searchStringKm}`
+  );
+  const milestones: MilestoneData[] = await data.json();
+  const convertedResults = convertMilestonesToBetriebsstellen(milestones);
+  return convertedResults;
 }

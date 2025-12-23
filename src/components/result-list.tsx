@@ -17,17 +17,12 @@ import {
   Typography,
 } from "@mui/material";
 import { Bolt, LocationPin, Map, PictureInPicture } from "@mui/icons-material";
-import {
-  findStreckensegmente,
-  type Betriebsstelle,
-  type Strecke,
-} from "../tools/data";
+import { findStreckensegmente, type Betriebsstelle } from "../tools/data";
 import { openAPN, openGoogleMaps } from "../tools/openWebsite";
 import type { Position } from "./map";
 
 interface ResultListProps {
-  isStrecke: boolean;
-  results: Betriebsstelle[] | Strecke[];
+  results: Betriebsstelle[];
   compactView: boolean;
   setSearchString: (value: string) => void;
   setMapOpen: (value: boolean) => void;
@@ -43,14 +38,13 @@ const StyledIconButton = styled(IconButton)(({ theme }) => ({
 }));
 
 function ResultList({
-  isStrecke,
   results,
   compactView,
   setSearchString,
   setMapOpen,
   setMapView,
 }: ResultListProps) {
-  return !isStrecke ? (
+  return (
     <Box
       sx={{
         display: "flex",
@@ -64,7 +58,7 @@ function ResultList({
           width: { xs: "calc(100% - 10px)", sm: 600, md: 900 },
         }}
       >
-        {(results as Betriebsstelle[]).map((result) => (
+        {results.map((result) => (
           <Card key={result.ds100}>
             <CardHeader
               title={
@@ -219,135 +213,6 @@ function ResultList({
         ))}
       </Stack>
     </Box>
-  ) : (
-    (results as Strecke[]).length > 0 && (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
-        <Card
-          sx={{
-            width: { xs: "calc(100% - 10px)", sm: 600, md: 900 },
-          }}
-        >
-          <CardHeader
-            title={(results as Strecke[])[0].streckennummer}
-            subheader={`${
-              (results as Strecke[])[0].betriebsstelle?.langname
-            } - ${
-              (results as Strecke[])[(results as Strecke[]).length - 1]
-                .betriebsstelle?.langname
-            }`}
-          />
-          <CardContent>
-            <TableContainer>
-              <Table sx={{ minWidth: 700 }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ width: 600 }}>Betriebsstelle</TableCell>
-                    <TableCell sx={{ width: 150 }}>km</TableCell>
-                    <TableCell sx={{ width: 100 }}></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {(results as Strecke[]).map((result) => (
-                    <TableRow key={`1` + Math.random()}>
-                      <TableCell>
-                        <Stack
-                          direction={"row"}
-                          spacing={1}
-                          display={"flex"}
-                          alignItems={"center"}
-                        >
-                          <Link
-                            style={{ cursor: "pointer" }}
-                            onClick={() =>
-                              setSearchString(
-                                result.betriebsstelle?.langname || ""
-                              )
-                            }
-                          >
-                            <Typography>
-                              {result.betriebsstelle?.betriebsstellentypen.map(
-                                (bst) => {
-                                  if (bst === "bahnhof") return "Bf ";
-                                  if (bst === "bahnhofsteil") return "Bft ";
-                                  if (bst === "haltepunkt") return "Hp ";
-                                  if (bst === "abzweigstelle") return "Azwst ";
-                                  if (bst === "ueberleitstelle") return "Üst ";
-                                }
-                              )}
-                              {result.betriebsstelle?.langname}
-                            </Typography>
-                          </Link>
-                          <Typography>
-                            {" (" + result.betriebsstelle?.ds100 + ")"}
-                          </Typography>
-                          {result.betriebsstelle?.elektrifiziert && (
-                            <Bolt color="warning" />
-                          )}
-                        </Stack>
-                      </TableCell>
-                      <TableCell>{result.km.toFixed(3)}</TableCell>
-                      <TableCell>
-                        <Stack direction="row" spacing={1} justifyContent="end">
-                          <StyledIconButton
-                            disabled={!result.betriebsstelle?.bahnhof}
-                            onClick={() =>
-                              openAPN(result.betriebsstelle?.ds100)
-                            }
-                          >
-                            <PictureInPicture />
-                          </StyledIconButton>
-                          {result.betriebsstelle && (
-                            <StyledIconButton
-                              disabled={
-                                !result.betriebsstelle?.geo_koordinaten
-                                  ? true
-                                  : false
-                              }
-                              onClick={() => {
-                                const geo =
-                                  result.betriebsstelle?.geo_koordinaten;
-                                if (!geo) return;
-                                setMapOpen(true);
-                                setMapView({
-                                  center: [geo.breite, geo.laenge],
-                                  zoom: 17,
-                                });
-                              }}
-                            >
-                              <LocationPin />
-                            </StyledIconButton>
-                          )}
-                          <StyledIconButton
-                            disabled={
-                              !result.betriebsstelle?.geo_koordinaten
-                                ? true
-                                : false
-                            }
-                            onClick={() =>
-                              openGoogleMaps(
-                                result.betriebsstelle?.geo_koordinaten.breite,
-                                result.betriebsstelle?.geo_koordinaten.laenge
-                              )
-                            }
-                          >
-                            <Map />
-                          </StyledIconButton>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </CardContent>
-        </Card>
-      </Box>
-    )
   );
 }
 

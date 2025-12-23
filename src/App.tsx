@@ -2,7 +2,7 @@ import "./App.css";
 import "leaflet/dist/leaflet.css";
 
 import ResultList from "./components/result-list";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dayjs from "dayjs";
 import {
   Box,
@@ -16,17 +16,14 @@ import {
   type IconButtonProps,
 } from "@mui/material";
 
-// import useMediaQuery from "@mui/material/useMediaQuery";
 import CssBaseline from "@mui/material/CssBaseline";
 import { styled, ThemeProvider } from "@mui/material/styles";
 import { darkTheme, lightTheme, THEME } from "./styles/theme";
 import {
-  // findBetriebstellen,
   findBst,
+  findMilestoneFromOpenrailway,
   getDataInfo,
-  // findStrecke,
   type Betriebsstelle,
-  type Strecke,
 } from "./tools/data";
 
 import Navbar from "./components/navbar";
@@ -54,17 +51,13 @@ const Main = styled(Box, {
   width: open ? `calc(100% - ${drawerWidth}px)` : "100&",
   marginRight: open ? drawerWidth : 0,
   flex: 1,
-  // backgroundColor: "magenta",
-  // minHeight: 0,
 }));
 
 const Footer = styled(Box, {
   shouldForwardProp: (prop) => prop !== "open" && prop !== "drawerWidth",
 })<MainProps>(({ theme, open, drawerWidth }) => ({
   boxSizing: "border-box",
-  // position: "sticky",
-  // bottom: 0,
-  // left: 0,
+
   transition: theme.transitions.create(["margin", "width"], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -72,7 +65,6 @@ const Footer = styled(Box, {
   width: open ? `calc(100% - ${drawerWidth}px)` : "100&",
   marginRight: open ? drawerWidth : 0,
   marginTop: "auto",
-  // flex: 1,
 }));
 
 const StyledCloseButton = styled(IconButton)(({ theme }) => ({
@@ -112,13 +104,11 @@ function useWindowWidth(
 }
 
 export default function App() {
-  // const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const windowWidth = useWindowWidth();
+  const hasSetInitialPosition = useRef(false);
+
   const { anzeigename, gueltig_von, gueltig_bis } = getDataInfo();
 
-  // const [theme, setTheme] = useState<THEME>(
-  //   prefersDarkMode ? THEME.Dark : THEME.Light
-  // );
   const [theme, setTheme] = useState<THEME>(
     window.localStorage.getItem("theme") === null ||
       window.localStorage.getItem("theme") === "0"
@@ -133,8 +123,8 @@ export default function App() {
       : true
   );
   const [searchString, setSearchString] = useState("");
-  const [isStrecke, setIsStrecke] = useState(false);
-  const [results, setResults] = useState<Betriebsstelle[] | Strecke[]>([]);
+  const [searchStringKm, setSearchStringKm] = useState("");
+  const [results, setResults] = useState<Betriebsstelle[]>([]);
   const [mapPosition, setMapPosition] = useState<Position>({
     center: [0, 0],
     zoom: 17,
@@ -171,19 +161,27 @@ export default function App() {
   }, [windowWidth]);
 
   useEffect(() => {
-    const results = findBst(searchString);
-    if (results[0]?.geo_koordinaten) {
-      setMapPosition({
-        center: [
-          results[0].geo_koordinaten.breite,
-          results[0].geo_koordinaten.laenge,
-        ],
-        zoom: 17,
+    if (searchString && searchStringKm) {
+      findMilestoneFromOpenrailway(searchString, searchStringKm).then((e) => {
+        setResults(e);
       });
+    } else {
+      setResults(findBst(searchString));
     }
-    setIsStrecke(false);
-    setResults(results);
-  }, [searchString]);
+  }, [searchString, searchStringKm]);
+
+  useEffect(() => {
+    if (results.length <= 0 || hasSetInitialPosition.current) return;
+    const initPosition: Position = {
+      center: [
+        results[0].geo_koordinaten.breite,
+        results[0].geo_koordinaten.laenge,
+      ],
+      zoom: 17,
+    };
+    setMapPosition(initPosition);
+    hasSetInitialPosition.current = true;
+  }, [results]);
 
   return (
     <ThemeProvider theme={theme == THEME.Dark ? darkTheme : lightTheme}>
@@ -258,11 +256,13 @@ export default function App() {
 
         <Navbar
           searchString={searchString}
+          searchStringKm={searchStringKm}
           currentTheme={theme}
           mapOpen={mapOpen}
           compactView={compactView}
           drawerWidth={drawerWidth}
           setSearchString={setSearchString}
+          setSearchStringKm={setSearchStringKm}
           setTheme={changeTheme}
           setCompactView={changeCompactView}
         />
@@ -271,7 +271,7 @@ export default function App() {
           <Box sx={{ marginTop: 8 }}>
             {results.length > 0 && (
               <ResultList
-                isStrecke={isStrecke}
+                // isStrecke={isStrecke}
                 results={results}
                 compactView={compactView}
                 setMapOpen={setMapOpen}

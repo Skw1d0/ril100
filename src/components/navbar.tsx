@@ -23,11 +23,13 @@ import { THEME } from "../styles/theme";
 
 interface NavbarPrpos {
   searchString: string;
+  searchStringKm: string;
   currentTheme: THEME;
   mapOpen: boolean;
   compactView: boolean;
   drawerWidth: number;
   setSearchString: (value: string) => void;
+  setSearchStringKm: (value: string) => void;
   setTheme: (value: THEME) => void;
   setCompactView: (value: boolean) => void;
 }
@@ -52,13 +54,17 @@ const StyledAppBar = styled(AppBar, {
   marginRight: mapOpen ? `${drawerWidth}px` : "0px",
 }));
 
+const onlyDigits = /^\d+$/;
+
 function Navbar({
-  searchString: searchTerm,
+  searchString,
+  searchStringKm,
   currentTheme,
   mapOpen,
   compactView,
   drawerWidth,
   setSearchString,
+  setSearchStringKm,
   setTheme,
   setCompactView,
 }: NavbarPrpos) {
@@ -89,7 +95,7 @@ function Navbar({
               ),
               endAdornment: (
                 <InputAdornment position="end">
-                  {searchTerm && (
+                  {searchString && (
                     <IconButton
                       sx={{ color: theme.palette.primary.main }}
                       onClick={() => setSearchString("")}
@@ -106,8 +112,32 @@ function Navbar({
           fullWidth
           variant="standard"
           onChange={(e) => setSearchString(e.target.value)}
-          value={searchTerm}
+          value={searchString}
         />
+        {onlyDigits.test(searchString) && (
+          <TextField
+            value={searchStringKm}
+            onChange={(e) => setSearchStringKm(e.target.value)}
+            variant="standard"
+            placeholder="km"
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    {searchString && (
+                      <IconButton
+                        sx={{ color: theme.palette.primary.main }}
+                        onClick={() => setSearchStringKm("")}
+                      >
+                        <Cancel />
+                      </IconButton>
+                    )}
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+        )}
         <Box flexGrow={1} />
         <IconButton
           sx={{ color: theme.palette.primary.main }}
